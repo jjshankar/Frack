@@ -1,8 +1,20 @@
 
-const LOGGING = 'off'
+const LOGGING = 'on';
+
 
 // Fraction class
 export class Fraction {
+
+    static FRAC_SEPARATOR = '/';
+    static FRAC_DELIMITER = '⌟';
+
+    static get SEPARATOR_CHAR(){
+        return Fraction.FRAC_SEPARATOR;
+    }
+
+    static get DELIMITER_CHAR(){
+        return Fraction.FRAC_DELIMITER;
+    }
 
     constructor(whole, numerator = 0, denominator = 1){
         Log('Constructor input: ' + whole + ";" + numerator + ";" + denominator);
@@ -13,15 +25,15 @@ export class Fraction {
         else
             this._fracDenominator = denominator;
 
-        Log('Constructed: ' + this._wholePart + "_" 
-                                + this._fracNumerator + "/"
+        Log('Constructed: ' + this._wholePart + Fraction.FRAC_DELIMITER
+                                + this._fracNumerator + Fraction.FRAC_SEPARATOR
                                 + this._fracDenominator);
         this.SimplifyFraction();
     }
 
     SimplifyFraction(){
-        Log('Simplifying: ' + this._wholePart + "_" 
-                                + this._fracNumerator + "/"
+        Log('Simplifying: ' + this._wholePart + Fraction.FRAC_DELIMITER 
+                                + this._fracNumerator + Fraction.FRAC_SEPARATOR
                                 + this._fracDenominator);
 
         if (this._fracDenominator == 0)
@@ -46,14 +58,14 @@ export class Fraction {
         if(this._wholePart < 0 && this._fracNumerator < 0)
             this._fracNumerator = Math.abs(this._fracNumerator);
         
-        Log('SimplifyFraction: final: ' + this._wholePart + '_' + this._fracNumerator + '/' + this._fracDenominator);
+        Log('SimplifyFraction: final: ' + this._wholePart + Fraction.FRAC_DELIMITER + this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator);
     }
 
     // Public methods
     Display(){
     
-        // Log('Displaying: ' + this._wholePart + "_" 
-        //                 + this._fracNumerator + "/"
+        // Log('Displaying: ' + this._wholePart + Fraction.FRAC_DELIMITER 
+        //                 + this._fracNumerator + Fraction.FRAC_SEPARATOR
         //                 + this._fracDenominator);
         // Simplify
         this.SimplifyFraction();
@@ -62,7 +74,7 @@ export class Fraction {
         {
             if (this._fracNumerator != 0)
                 // return format = "{0}_{1}/{2})"
-                return this._wholePart + "_" + this._fracNumerator + "/" + this._fracDenominator;
+                return this._wholePart + Fraction.FRAC_DELIMITER + this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator;
             else
                 //return format = "{0}", 
                 return this._wholePart;
@@ -71,7 +83,7 @@ export class Fraction {
         {
             if (this._fracNumerator != 0)
                 // return format = {0}/{1}
-                return this._fracNumerator + "/" + this._fracDenominator;
+                return this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator;
         }
 
         return "0";
@@ -130,29 +142,29 @@ export class Fraction {
 
         // Validate and parse
         sFraction = sFraction.toString();
-        if (sFraction.indexOf("_") <= 0)
+        if (sFraction.indexOf(Fraction.FRAC_DELIMITER) <= 0)
         {
             wholePart = isNaN(sFraction) ? 0 : sFraction;
         }
 
-        if (sFraction.indexOf("_") > 0)
+        if (sFraction.indexOf(Fraction.FRAC_DELIMITER) > 0)
         {
-            wholePart = sFraction.substring(0, sFraction.indexOf("_"));
+            wholePart = sFraction.substring(0, sFraction.indexOf(Fraction.FRAC_DELIMITER));
             Log('TryParse: wholePart = ' + wholePart);
             wholePart = isNaN(wholePart) ? 0 : wholePart;
             Log('TryParse: wholePart = ' + wholePart);
             
         }
 
-        if (sFraction.indexOf("/") > 0)
+        if (sFraction.indexOf(Fraction.FRAC_SEPARATOR) > 0)
         {
-            fracNumerator = sFraction.substring(sFraction.indexOf("_") + 1, sFraction.indexOf("/"));
+            fracNumerator = sFraction.substring(sFraction.indexOf(Fraction.FRAC_DELIMITER) + 1, sFraction.indexOf(Fraction.FRAC_SEPARATOR));
             Log('TryParse: fracNumerator=' + fracNumerator);
             fracNumerator = isNaN(fracNumerator) ?  0 : fracNumerator;
             Log('TryParse: fracNumerator=' + fracNumerator);
             
 
-            fracDenominator = sFraction.substring(sFraction.indexOf("/") + 1);
+            fracDenominator = sFraction.substring(sFraction.indexOf(Fraction.FRAC_SEPARATOR) + 1);
             Log('TryParse: fracDenominator=' + fracDenominator);
             fracDenominator = isNaN(fracDenominator) ? 1 : fracDenominator;
             Log('TryParse: fracDenominator=' + fracDenominator);
@@ -160,8 +172,8 @@ export class Fraction {
         }
 
         // Return val
-        Log('Final parsed: ' + wholePart + "_" 
-                            + fracNumerator + "/"
+        Log('Final parsed: ' + wholePart + Fraction.FRAC_DELIMITER 
+                            + fracNumerator + Fraction.FRAC_SEPARATOR
                             + fracDenominator);
         return new Fraction(wholePart, fracNumerator, fracDenominator);
     }

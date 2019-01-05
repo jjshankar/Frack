@@ -4,11 +4,9 @@ import { StyleSheet, Text, View, FlatList, ScrollView, TouchableOpacity, Button 
 import {Fraction} from './classes/Fraction'
 
 const LOGGING = 'on'
-const MAX_LEN = 15; // 16 chars max
+const MAX_LEN = 12; // 12 chars max
 
-// Symbols
-const FRAC_SEPARATOR = '/';
-const FRAC_DELIMITER = '_'; 
+// Calculator symbols
 const OP_DIVIDE = '÷';
 const OP_MULTIPLY = '×';
 const OP_ADD = '+';
@@ -16,6 +14,12 @@ const OP_SUBTRACT = '−';
 const OP_EQUAL = '=';
 const BACKSPACE = '⌫';
 
+// Fraction characters
+const FRAC_SEPARATOR = Fraction.SEPARATOR_CHAR;
+const FRAC_DELIMITER = Fraction.DELIMITER_CHAR; 
+
+Log('FRAC_SEPARATOR=' + FRAC_SEPARATOR);
+Log('FRAC_DELIMITER=' + FRAC_DELIMITER);
 
 export default class App extends React.Component {
   constructor() {
@@ -38,6 +42,7 @@ export default class App extends React.Component {
     //alert('Doing stuff...');
     var value = this.state.currFrac;
     // Log('value = ' + value);
+    Log('incoming val=' + val);
     if(value == null)
       return;
 
@@ -67,7 +72,7 @@ export default class App extends React.Component {
             if(value.indexOf(FRAC_SEPARATOR) >= 0)
               return;
             if(this.state.newOperand)
-              value = val.toString();
+              value = (value.indexOf("0") == 0) ? "0" : val.toString();
             else
               value = (value.indexOf("0") == 0) ? "0" : value.concat(val.toString());
           }
@@ -79,7 +84,7 @@ export default class App extends React.Component {
             if(value.indexOf(FRAC_SEPARATOR) >=0)
               return;
             if(this.state.newOperand)
-              value = val.toString();
+              value = (value.indexOf("0") == 0) ? "0" : val.toString();
             else
               value = (value.indexOf("0") == 0) ? "0" : value.concat(val.toString());
           }
@@ -260,19 +265,28 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <View style={{backgroundColor: 'darkgray', flex: 1}}>
+      <View style={styles.mainView}>
         <View style={styles.container}>
           
           <ScrollView 
             style={styles.calculationScrollView}
             ref={ref => this.scrollView = ref}
             contentContainerStyle={styles.calculationScrollContent}>
-            <Text adjustsFontSizeToFit={true} style={styles.calculationText}>{this.state.displayedInfo}</Text>
+            <Text 
+              adjustsFontSizeToFit={true} 
+              style={styles.calculationText}>
+              {this.state.displayedInfo}
+            </Text>
           </ScrollView>
-
+          
           <ScrollView scrollEnabled={false}>
             <View style={styles.displayArea}>
-              <Text style={styles.buttonText}>{this.state.currFrac}</Text>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.displayScrollContent}>
+                  <Text adjustsFontSizeToFit={true} style={styles.buttonText}>{this.state.currFrac}</Text>
+              </ScrollView>
             </View>
             
             <View style={{flexDirection:'row'}}>
@@ -372,7 +386,7 @@ export default class App extends React.Component {
               <TouchableOpacity          
                 style={styles.buttonStyle}
                 onPress={() => this.createFraction(FRAC_DELIMITER)}>
-                <Text style={styles.buttonText}> ⌟ </Text>
+                <Text style={styles.buttonText}> {FRAC_DELIMITER} </Text>
               </TouchableOpacity>
               <TouchableOpacity          
                 style={styles.buttonStyle}
@@ -400,6 +414,10 @@ export default class App extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  mainView: {
+    backgroundColor: 'darkgray', 
+    flex: 1,
+  },
   container: {
     flex: 1,
     padding: 0,
@@ -414,7 +432,8 @@ const styles = StyleSheet.create({
   calculationScrollView: {
     // borderWidth: 1, 
     width: 320, 
-    height: 12,
+    height: 40,
+    
   },
   calculationScrollContent: {
     paddingTop: 110,
@@ -426,6 +445,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     //flexDirection: 'column',
     position: 'relative',
+    paddingBottom: 8,
   },
   buttonStyle: {
     padding: 6,
@@ -491,7 +511,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'flex-end',
     flexShrink: 1
-  }
+  },
+  displayScrollContent : {
+    alignContent: 'flex-end', 
+    alignSelf: 'flex-end', 
+    alignItems: 'flex-end', 
+    justifyContent: 'flex-end',
+  },
 });
 
 function Log(message){
