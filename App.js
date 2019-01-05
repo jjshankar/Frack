@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, FlatList, ScrollView, TouchableOpacity, Button 
 
 import {Fraction} from './classes/Fraction'
 
+const LOGGING = 'on'
 const MAX_LEN = 15; // 16 chars max
 
 export default class App extends React.Component {
@@ -25,7 +26,7 @@ export default class App extends React.Component {
   createFraction(val){
     //alert('Doing stuff...');
     var value = this.state.currFrac;
-    // console.log('value = ' + value);
+    // Log('value = ' + value);
     if(value == null)
       return;
 
@@ -104,25 +105,28 @@ export default class App extends React.Component {
 
     // if oper1 and oper2 are both null
     if(this.state.oper1 == null && this.state.oper2 == null){
-      console.log('setOperation: oper1 and oper2 are both null');
+      Log('setOperation: oper1 and oper2 are both null');
+
+      // If = was pressed, return
+      if(currOp == '=')
+        return;
 
       // Parse currFrac and set as oper1
-      console.log('setOperation: this.state.currFrac = ' + this.state.currFrac)
+      Log('setOperation: this.state.currFrac = ' + this.state.currFrac)
       operandFraction = Fraction.TryParse(this.state.currFrac);
       if(operandFraction != null){
-        console.log('Op1: ' + operandFraction.Display());
+        Log('Op1: ' + operandFraction.Display());
 
         //  show display
         displayData = this.state.displayedInfo;
-        displayData += " " + operandFraction.Display();
-        displayData += " " + currOp;
+        displayData += ' ' + operandFraction.Display();
+        displayData += ' ' + currOp;
 
         // Set state
         this.setState({
           oper1: operandFraction,
           operation: currOp,
           nextOp: "",
-          currFrac: "0",
           displayedInfo: displayData,
           newOperand: true
         }, this.refreshDisplay);
@@ -130,18 +134,32 @@ export default class App extends React.Component {
     }
     // if oper1 is fixed, oper2 is null
     else if(this.state.oper1 != null && this.state.oper2 == null){
-      console.log('oper1 is fixed; oper2 is null; currOp: ' + currOp);
+      Log('oper1 is fixed; oper2 is null; currOp: ' + currOp);
+      
+      // if(currOp == "=")
+      // {
+      //   displayData = this.state.displayedInfo + this.state.currFrac +  "\n";
+      //   this.setState({
+      //     oper1: null,
+      //     oper2: null,
+      //     operation: "",
+      //     nextOp: "",
+      //     displayedInfo: displayData
+      //   }, this.refreshDisplay);
+
+      //   return;
+      // }
       
       // Parse currFrac and set as oper2
-      console.log('CurrFrac for op2: ' + this.state.currFrac);
+      Log('CurrFrac for op2: ' + this.state.currFrac);
       operandFraction = Fraction.TryParse(this.state.currFrac.toString());
       if(operandFraction != null){
-        console.log('Op2: ' + operandFraction.Display());
+        Log('Op2: ' + operandFraction.Display());
 
         //  show display
-        displayData = this.state.displayedInfo + " ";
-        displayData += operandFraction.Display();
-        displayData += " " + currOp;
+        displayData = this.state.displayedInfo;
+        displayData += ' ' + operandFraction.Display();
+        displayData += ' ' + currOp;
 
         // Set state
         this.setState({
@@ -149,19 +167,6 @@ export default class App extends React.Component {
           displayedInfo: displayData,
           nextOp: currOp,
         }, this.getResult);
-
-
-        // if(currOp == "=")
-        // {
-        //   displayData = this.state.displayedInfo + this.state.currFrac +  "\n";
-        //   this.setState({
-        //     oper1: null,
-        //     oper2: null,
-        //     operation: "",
-        //     nextOp: "",
-        //     displayedInfo: displayData
-        //   })
-        // }
       }
 
       
@@ -169,7 +174,7 @@ export default class App extends React.Component {
     else {
       // if oper1 and oper2 are both fixed
       //  CASE Not possible
-      console.log('oper1 is fixed; oper2 is fixed: CASE NOT Possible???');
+      Log('oper1 is fixed; oper2 is fixed: CASE NOT Possible???');
     }
 
   }
@@ -178,13 +183,13 @@ export default class App extends React.Component {
     var resultFraction;
     var displayData;
 
-    console.log('getResult op: ' + this.state.operation);
-    console.log('oper1: ' + this.state.oper1.Display());
-    console.log('oper2: ' + this.state.oper2.Display());
+    Log('getResult op: ' + this.state.operation);
+    Log('oper1: ' + this.state.oper1.Display());
+    Log('oper2: ' + this.state.oper2.Display());
 
     // if oper1 and oper2 are both fixed
     if(this.state.oper1 != null && this.state.oper2 != null){
-      console.log('getResult not nulls');
+      Log('getResult not nulls');
       //  perform operation
       switch(this.state.operation){
         case '+':
@@ -200,7 +205,7 @@ export default class App extends React.Component {
           resultFraction = Fraction.Divide(this.state.oper1, this.state.oper2);
           break;
         case '=':
-          console.log("hitting =");
+          Log("hitting =");
           resultFraction = this.state.oper1;
           displayData = this.state.displayedInfo + this.state.oper1.Display() +  "\n";
           await this.setState({
@@ -221,9 +226,9 @@ export default class App extends React.Component {
         var fracString = resultFraction.Display();
         var nextOperation = this.state.nextOp;
         displayData = this.state.displayedInfo;
-        displayData += (nextOperation == "=") ? " " + fracString +  "\n" : "";
+        displayData += (nextOperation == "=") ? " " + fracString +  "\n" : '';
 
-        console.log('getResult = ' + fracString);
+        Log('getResult = ' + fracString);
         await this.setState({
           currFrac: fracString,
           operation: (nextOperation == "=") ? "" : nextOperation,
@@ -238,7 +243,7 @@ export default class App extends React.Component {
   }
 
   refreshDisplay(){
-    console.log('Display: ' + this.state.displayedInfo);
+    Log('Display: ' + this.state.displayedInfo);
     this.scrollView.scrollToEnd({animated:true});
   }
 
@@ -477,3 +482,9 @@ const styles = StyleSheet.create({
     flexShrink: 1
   }
 });
+
+function Log(message){
+  if(LOGGING == 'on'){
+    console.log(message);
+  }
+}

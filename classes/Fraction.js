@@ -1,42 +1,11 @@
 
-
-// Generic helper function
-function GCD(x, y){
-    var a = Math.abs(x);
-    var b = Math.abs(y);
-
-    // Exit conditions
-    if (a == b) return a;
-    if (a == 0) return b;
-    if (b == 0) return a;
-
-    // If a is even...
-    if (a % 2 == 0)
-    {
-        // ...and b is even
-        if (b % 2 == 0)
-            return GCD(a >> 1, b >> 1) << 1;
-        // ...or b is odd
-        else
-            return GCD(a >> 1, b);
-    }
-
-    // a is odd, b is even
-    if (b % 2 == 0)
-        return GCD(a, b >> 1);
-
-    // Reduce
-    if (a > b)
-        return GCD((a - b) >> 1, b);
-
-    return GCD((b - a) >> 1, a);
-}
+const LOGGING = 'off'
 
 // Fraction class
 export class Fraction {
 
     constructor(whole, numerator = 0, denominator = 1){
-        console.log('Constructor input: ' + whole + ";" + numerator + ";" + denominator);
+        Log('Constructor input: ' + whole + ";" + numerator + ";" + denominator);
         this._wholePart = whole;
         this._fracNumerator = numerator;
         if(denominator == 0 ) 
@@ -44,14 +13,14 @@ export class Fraction {
         else
             this._fracDenominator = denominator;
 
-        console.log('Constructed: ' + this._wholePart + "_" 
+        Log('Constructed: ' + this._wholePart + "_" 
                                 + this._fracNumerator + "/"
                                 + this._fracDenominator);
         this.SimplifyFraction();
     }
 
     SimplifyFraction(){
-        console.log('Simplifying: ' + this._wholePart + "_" 
+        Log('Simplifying: ' + this._wholePart + "_" 
                                 + this._fracNumerator + "/"
                                 + this._fracDenominator);
 
@@ -59,31 +28,31 @@ export class Fraction {
             return;
 
         var fracNum = this._fracNumerator % this._fracDenominator;
-        console.log('SimplifyFraction: fracNum = ' + fracNum);
+        Log('SimplifyFraction: fracNum = ' + fracNum);
 
         var gcd = GCD(fracNum,this._fracDenominator);
-        console.log('SimplifyFraction: gcd = ' + gcd);
+        Log('SimplifyFraction: gcd = ' + gcd);
         
         // Using unary + operator to treat as numbers
         this._wholePart = +this._wholePart + +Math.trunc(this._fracNumerator / this._fracDenominator);
-        console.log('SimplifyFraction: _wholePart = ' + this._wholePart);
+        Log('SimplifyFraction: _wholePart = ' + this._wholePart);
         
         this._fracNumerator = fracNum / gcd;
-        console.log('SimplifyFraction: _fracNumerator = ' + this._fracNumerator);
+        Log('SimplifyFraction: _fracNumerator = ' + this._fracNumerator);
 
         this._fracDenominator = this._fracDenominator / gcd;
-        console.log('SimplifyFraction: _fracDenominator = ' + this._fracDenominator);
+        Log('SimplifyFraction: _fracDenominator = ' + this._fracDenominator);
 
         if(this._wholePart < 0 && this._fracNumerator < 0)
             this._fracNumerator = Math.abs(this._fracNumerator);
         
-        console.log('SimplifyFraction: final: ' + this._wholePart + '_' + this._fracNumerator + '/' + this._fracDenominator);
+        Log('SimplifyFraction: final: ' + this._wholePart + '_' + this._fracNumerator + '/' + this._fracDenominator);
     }
 
     // Public methods
     Display(){
     
-        // console.log('Displaying: ' + this._wholePart + "_" 
+        // Log('Displaying: ' + this._wholePart + "_" 
         //                 + this._fracNumerator + "/"
         //                 + this._fracDenominator);
         // Simplify
@@ -169,29 +138,29 @@ export class Fraction {
         if (sFraction.indexOf("_") > 0)
         {
             wholePart = sFraction.substring(0, sFraction.indexOf("_"));
-            console.log('TryParse: wholePart = ' + wholePart);
+            Log('TryParse: wholePart = ' + wholePart);
             wholePart = isNaN(wholePart) ? 0 : wholePart;
-            console.log('TryParse: wholePart = ' + wholePart);
+            Log('TryParse: wholePart = ' + wholePart);
             
         }
 
         if (sFraction.indexOf("/") > 0)
         {
             fracNumerator = sFraction.substring(sFraction.indexOf("_") + 1, sFraction.indexOf("/"));
-            console.log('TryParse: fracNumerator=' + fracNumerator);
+            Log('TryParse: fracNumerator=' + fracNumerator);
             fracNumerator = isNaN(fracNumerator) ?  0 : fracNumerator;
-            console.log('TryParse: fracNumerator=' + fracNumerator);
+            Log('TryParse: fracNumerator=' + fracNumerator);
             
 
             fracDenominator = sFraction.substring(sFraction.indexOf("/") + 1);
-            console.log('TryParse: fracDenominator=' + fracDenominator);
+            Log('TryParse: fracDenominator=' + fracDenominator);
             fracDenominator = isNaN(fracDenominator) ? 1 : fracDenominator;
-            console.log('TryParse: fracDenominator=' + fracDenominator);
+            Log('TryParse: fracDenominator=' + fracDenominator);
             
         }
 
         // Return val
-        console.log('Final parsed: ' + wholePart + "_" 
+        Log('Final parsed: ' + wholePart + "_" 
                             + fracNumerator + "/"
                             + fracDenominator);
         return new Fraction(wholePart, fracNumerator, fracDenominator);
@@ -335,4 +304,44 @@ export class Fraction {
     //     int hash = _wholePart ^ _fracNumerator ^ _fracDenominator;
     //     return hash;
     // }
+}
+
+// Generic helper functions
+function GCD(x, y){
+    var a = Math.abs(x);
+    var b = Math.abs(y);
+
+    // Exit conditions
+    if (a == b) return a;
+    if (a == 0) return b;
+    if (b == 0) return a;
+
+    // If a is even...
+    if (a % 2 == 0)
+    {
+        // ...and b is even
+        if (b % 2 == 0)
+            return GCD(a >> 1, b >> 1) << 1;
+        // ...or b is odd
+        else
+            return GCD(a >> 1, b);
+    }
+
+    // a is odd, b is even
+    if (b % 2 == 0)
+        return GCD(a, b >> 1);
+
+    // Reduce
+    if (a > b)
+        return GCD((a - b) >> 1, b);
+
+    return GCD((b - a) >> 1, a);
+}
+
+function Log(message)
+{
+    if(LOGGING == 'on')
+    {
+        console.log(message);
+    }
 }
