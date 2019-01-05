@@ -6,6 +6,17 @@ import {Fraction} from './classes/Fraction'
 const LOGGING = 'on'
 const MAX_LEN = 15; // 16 chars max
 
+// Symbols
+const FRAC_SEPARATOR = '/';
+const FRAC_DELIMITER = '_'; 
+const OP_DIVIDE = '÷';
+const OP_MULTIPLY = '×';
+const OP_ADD = '+';
+const OP_SUBTRACT = '−';
+const OP_EQUAL = '=';
+const BACKSPACE = '⌫';
+
+
 export default class App extends React.Component {
   constructor() {
     super();
@@ -51,9 +62,9 @@ export default class App extends React.Component {
           }, this.refreshDisplay);
           value = "0";
           return;
-        case "/":
+        case FRAC_SEPARATOR:  // "/"
           if(value.length > 0){
-            if(value.indexOf("/") >= 0)
+            if(value.indexOf(FRAC_SEPARATOR) >= 0)
               return;
             if(this.state.newOperand)
               value = val.toString();
@@ -61,11 +72,11 @@ export default class App extends React.Component {
               value = (value.indexOf("0") == 0) ? "0" : value.concat(val.toString());
           }
           break;
-        case "_":
+        case FRAC_DELIMITER:  // "_"
           if(value.length > 0){
-            if(value.indexOf("_") >= 0)
+            if(value.indexOf(FRAC_DELIMITER) >= 0)
               return;
-            if(value.indexOf('/') >=0)
+            if(value.indexOf(FRAC_SEPARATOR) >=0)
               return;
             if(this.state.newOperand)
               value = val.toString();
@@ -108,7 +119,7 @@ export default class App extends React.Component {
       Log('setOperation: oper1 and oper2 are both null');
 
       // If = was pressed, return
-      if(currOp == '=')
+      if(currOp == OP_EQUAL)
         return;
 
       // Parse currFrac and set as oper1
@@ -136,7 +147,7 @@ export default class App extends React.Component {
     else if(this.state.oper1 != null && this.state.oper2 == null){
       Log('oper1 is fixed; oper2 is null; currOp: ' + currOp);
       
-      // if(currOp == "=")
+      // if(currOp == OP_EQUAL)
       // {
       //   displayData = this.state.displayedInfo + this.state.currFrac +  "\n";
       //   this.setState({
@@ -192,20 +203,20 @@ export default class App extends React.Component {
       Log('getResult not nulls');
       //  perform operation
       switch(this.state.operation){
-        case '+':
+        case OP_ADD:
           resultFraction = Fraction.Add(this.state.oper1, this.state.oper2);
           break;
-        case '-':
+        case OP_SUBTRACT:
           resultFraction = Fraction.Subtract(this.state.oper1, this.state.oper2);
           break;
-        case '*':
+        case OP_MULTIPLY:
           resultFraction = Fraction.Multiply(this.state.oper1, this.state.oper2);
           break;
-        case '/':
+        case OP_DIVIDE:
           resultFraction = Fraction.Divide(this.state.oper1, this.state.oper2);
           break;
-        case '=':
-          Log("hitting =");
+        case OP_EQUAL:
+          Log("hitting OP_EQUAL");
           resultFraction = this.state.oper1;
           displayData = this.state.displayedInfo + this.state.oper1.Display() +  "\n";
           await this.setState({
@@ -226,14 +237,14 @@ export default class App extends React.Component {
         var fracString = resultFraction.Display();
         var nextOperation = this.state.nextOp;
         displayData = this.state.displayedInfo;
-        displayData += (nextOperation == "=") ? " " + fracString +  "\n" : '';
+        displayData += (nextOperation == OP_EQUAL) ? " " + fracString +  "\n" : '';
 
         Log('getResult = ' + fracString);
         await this.setState({
           currFrac: fracString,
-          operation: (nextOperation == "=") ? "" : nextOperation,
+          operation: (nextOperation == OP_EQUAL) ? "" : nextOperation,
           nextOp: "",
-          oper1: (nextOperation == "=") ? null : resultFraction,
+          oper1: (nextOperation == OP_EQUAL) ? null : resultFraction,
           oper2: null,
           newOperand: true,
           displayedInfo: displayData
@@ -278,12 +289,12 @@ export default class App extends React.Component {
               <TouchableOpacity          
                 style={styles.buttonSpecialStyle}
                 onPress={() => this.backSpace()}>
-                <Text style={styles.buttonText}> ⌫ </Text>
+                <Text style={styles.buttonText}> {BACKSPACE} </Text>
               </TouchableOpacity>
               <TouchableOpacity          
                 style={styles.buttonOperStyle}
-                onPress={() => this.setOperation('=')}>
-                <Text style={styles.buttonText}> = </Text>
+                onPress={() => this.setOperation(OP_EQUAL)}>
+                <Text style={styles.buttonText}> {OP_EQUAL} </Text>
               </TouchableOpacity>
             </View>
 
@@ -305,8 +316,8 @@ export default class App extends React.Component {
               </TouchableOpacity>
               <TouchableOpacity          
                 style={styles.buttonOperStyle}
-                onPress={() => this.setOperation('/')}>
-                <Text style={styles.buttonText}> ÷ </Text>
+                onPress={() => this.setOperation(OP_DIVIDE)}>
+                <Text style={styles.buttonText}> {OP_DIVIDE} </Text>
               </TouchableOpacity>
             </View>
 
@@ -328,8 +339,8 @@ export default class App extends React.Component {
               </TouchableOpacity>
               <TouchableOpacity          
                 style={styles.buttonOperStyle}
-                onPress={() => this.setOperation('*')}>
-                <Text style={styles.buttonText}> × </Text>
+                onPress={() => this.setOperation(OP_MULTIPLY)}>
+                <Text style={styles.buttonText}> {OP_MULTIPLY} </Text>
               </TouchableOpacity>
             </View>
             
@@ -352,15 +363,15 @@ export default class App extends React.Component {
               </TouchableOpacity>
               <TouchableOpacity          
                 style={styles.buttonOperStyle}
-                onPress={() => this.setOperation('-')}>
-                <Text style={styles.buttonText}> − </Text>
+                onPress={() => this.setOperation(OP_SUBTRACT)}>
+                <Text style={styles.buttonText}> {OP_SUBTRACT} </Text>
               </TouchableOpacity>
             </View>
             
             <View style={{flexDirection:'row'}}>
               <TouchableOpacity          
                 style={styles.buttonStyle}
-                onPress={() => this.createFraction('_')}>
+                onPress={() => this.createFraction(FRAC_DELIMITER)}>
                 <Text style={styles.buttonText}> ⌟ </Text>
               </TouchableOpacity>
               <TouchableOpacity          
@@ -370,13 +381,13 @@ export default class App extends React.Component {
               </TouchableOpacity>
               <TouchableOpacity          
                 style={styles.buttonStyle}
-                onPress={() => this.createFraction('/')}>
+                onPress={() => this.createFraction(FRAC_SEPARATOR)}>
                 <Text style={styles.buttonText}> / </Text>
               </TouchableOpacity>
               <TouchableOpacity          
                 style={styles.buttonOperStyle}
-                onPress={() => this.setOperation('+')}>
-                <Text style={styles.buttonText}> + </Text>
+                onPress={() => this.setOperation(OP_ADD)}>
+                <Text style={styles.buttonText}> {OP_ADD} </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
