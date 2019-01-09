@@ -1,5 +1,6 @@
+import {Globals} from '../Globals'
 
-const LOGGING = 'on';
+const LOGGING = Globals.LOGGING; // 'off';
 
 
 // Fraction class
@@ -7,6 +8,7 @@ export class Fraction {
 
     static FRAC_SEPARATOR = '/';
     static FRAC_DELIMITER = '⌟';
+    static SIMPLIFY_FRACTION = true;
 
     static get SEPARATOR_CHAR(){
         return Fraction.FRAC_SEPARATOR;
@@ -16,8 +18,12 @@ export class Fraction {
         return Fraction.FRAC_DELIMITER;
     }
 
+    static set ALWAYS_SIMPLIFY(val = true){
+        Fraction.SIMPLIFY_FRACTION = val;
+    }
+
     constructor(whole, numerator = 0, denominator = 1){
-        Log('Constructor input: ' + whole + ";" + numerator + ";" + denominator);
+        Globals.Log('Constructor input: ' + whole + ";" + numerator + ";" + denominator);
         this._wholePart = whole;
         this._fracNumerator = numerator;
         if(denominator == 0 ) 
@@ -25,14 +31,18 @@ export class Fraction {
         else
             this._fracDenominator = denominator;
 
-        Log('Constructed: ' + this._wholePart + Fraction.FRAC_DELIMITER
+        Globals.Log('Constructed: ' + this._wholePart + Fraction.FRAC_DELIMITER
                                 + this._fracNumerator + Fraction.FRAC_SEPARATOR
                                 + this._fracDenominator);
         this.SimplifyFraction();
     }
 
     SimplifyFraction(){
-        Log('Simplifying: ' + this._wholePart + Fraction.FRAC_DELIMITER 
+        // Return if ALWAYS_SIMPLIFY is OFF
+        if(!Fraction.SIMPLIFY_FRACTION)
+            return;
+
+        Globals.Log('Simplifying: ' + this._wholePart + Fraction.FRAC_DELIMITER 
                                 + this._fracNumerator + Fraction.FRAC_SEPARATOR
                                 + this._fracDenominator);
 
@@ -40,31 +50,31 @@ export class Fraction {
             return;
 
         var fracNum = this._fracNumerator % this._fracDenominator;
-        Log('SimplifyFraction: fracNum = ' + fracNum);
+        Globals.Log('SimplifyFraction: fracNum = ' + fracNum);
 
         var gcd = GCD(fracNum,this._fracDenominator);
-        Log('SimplifyFraction: gcd = ' + gcd);
+        Globals.Log('SimplifyFraction: gcd = ' + gcd);
         
         // Using unary + operator to treat as numbers
         this._wholePart = +this._wholePart + +Math.trunc(this._fracNumerator / this._fracDenominator);
-        Log('SimplifyFraction: _wholePart = ' + this._wholePart);
+        Globals.Log('SimplifyFraction: _wholePart = ' + this._wholePart);
         
         this._fracNumerator = fracNum / gcd;
-        Log('SimplifyFraction: _fracNumerator = ' + this._fracNumerator);
+        Globals.Log('SimplifyFraction: _fracNumerator = ' + this._fracNumerator);
 
         this._fracDenominator = this._fracDenominator / gcd;
-        Log('SimplifyFraction: _fracDenominator = ' + this._fracDenominator);
+        Globals.Log('SimplifyFraction: _fracDenominator = ' + this._fracDenominator);
 
         if(this._wholePart < 0 && this._fracNumerator < 0)
             this._fracNumerator = Math.abs(this._fracNumerator);
         
-        Log('SimplifyFraction: final: ' + this._wholePart + Fraction.FRAC_DELIMITER + this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator);
+        Globals.Log('SimplifyFraction: final: ' + this._wholePart + Fraction.FRAC_DELIMITER + this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator);
     }
 
     // Public methods
     Display(){
     
-        // Log('Displaying: ' + this._wholePart + Fraction.FRAC_DELIMITER 
+        // Globals.Log('Displaying: ' + this._wholePart + Fraction.FRAC_DELIMITER 
         //                 + this._fracNumerator + Fraction.FRAC_SEPARATOR
         //                 + this._fracDenominator);
         // Simplify
@@ -150,29 +160,29 @@ export class Fraction {
         if (sFraction.indexOf(Fraction.FRAC_DELIMITER) > 0)
         {
             wholePart = sFraction.substring(0, sFraction.indexOf(Fraction.FRAC_DELIMITER));
-            Log('TryParse: wholePart = ' + wholePart);
+            Globals.Log('TryParse: wholePart = ' + wholePart);
             wholePart = isNaN(wholePart) ? 0 : wholePart;
-            Log('TryParse: wholePart = ' + wholePart);
+            Globals.Log('TryParse: wholePart = ' + wholePart);
             
         }
 
         if (sFraction.indexOf(Fraction.FRAC_SEPARATOR) > 0)
         {
             fracNumerator = sFraction.substring(sFraction.indexOf(Fraction.FRAC_DELIMITER) + 1, sFraction.indexOf(Fraction.FRAC_SEPARATOR));
-            Log('TryParse: fracNumerator=' + fracNumerator);
+            Globals.Log('TryParse: fracNumerator=' + fracNumerator);
             fracNumerator = isNaN(fracNumerator) ?  0 : fracNumerator;
-            Log('TryParse: fracNumerator=' + fracNumerator);
+            Globals.Log('TryParse: fracNumerator=' + fracNumerator);
             
 
             fracDenominator = sFraction.substring(sFraction.indexOf(Fraction.FRAC_SEPARATOR) + 1);
-            Log('TryParse: fracDenominator=' + fracDenominator);
+            Globals.Log('TryParse: fracDenominator=' + fracDenominator);
             fracDenominator = isNaN(fracDenominator) ? 1 : fracDenominator;
-            Log('TryParse: fracDenominator=' + fracDenominator);
+            Globals.Log('TryParse: fracDenominator=' + fracDenominator);
             
         }
 
         // Return val
-        Log('Final parsed: ' + wholePart + Fraction.FRAC_DELIMITER 
+        Globals.Log('Final parsed: ' + wholePart + Fraction.FRAC_DELIMITER 
                             + fracNumerator + Fraction.FRAC_SEPARATOR
                             + fracDenominator);
         return new Fraction(wholePart, fracNumerator, fracDenominator);
@@ -348,12 +358,4 @@ function GCD(x, y){
         return GCD((a - b) >> 1, b);
 
     return GCD((b - a) >> 1, a);
-}
-
-function Log(message)
-{
-    if(LOGGING == 'on')
-    {
-        console.log(message);
-    }
 }

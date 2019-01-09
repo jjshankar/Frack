@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, View, FlatList, ScrollView, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, Switch, ScrollView, TouchableOpacity, Button } from 'react-native';
 
 import {Fraction} from './classes/Fraction'
+import {Globals} from './Globals'
 
-const LOGGING = 'on'
+const LOGGING = Globals.LOGGING;
 const MAX_LEN = 12; // 12 chars max
 
 // Calculator symbols
@@ -18,19 +19,20 @@ const BACKSPACE = '⌫';
 const FRAC_SEPARATOR = Fraction.SEPARATOR_CHAR;
 const FRAC_DELIMITER = Fraction.DELIMITER_CHAR; 
 
-Log('FRAC_SEPARATOR=' + FRAC_SEPARATOR);
-Log('FRAC_DELIMITER=' + FRAC_DELIMITER);
+Globals.Log('FRAC_SEPARATOR=' + FRAC_SEPARATOR);
+Globals.Log('FRAC_DELIMITER=' + FRAC_DELIMITER);
 
 export default class App extends React.Component {
   constructor() {
     super();
 
     this.state = {
+      alwaysSimplifyFraction: true,
       currFrac: "",
       oper1: null,
       oper2: null,
       operation: "",
-      displayedInfo: "",
+      displayedInfo: "\r\n",
       newOperand: true,
       nextOp: "",
     }
@@ -41,8 +43,8 @@ export default class App extends React.Component {
   createFraction(val){
     //alert('Doing stuff...');
     var value = this.state.currFrac;
-    // Log('value = ' + value);
-    Log('incoming val=' + val);
+    // Globals.Log('value = ' + value);
+    Globals.Log('incoming val=' + val);
     if(value == null)
       return;
 
@@ -58,7 +60,7 @@ export default class App extends React.Component {
         case 'allcancel':
           this.setState({
             currFrac: "0",
-            displayedInfo: "",
+            displayedInfo: "\r\n",
             oper1: null,
             oper2: null,
             operation: "",
@@ -121,17 +123,17 @@ export default class App extends React.Component {
 
     // if oper1 and oper2 are both null
     if(this.state.oper1 == null && this.state.oper2 == null){
-      Log('setOperation: oper1 and oper2 are both null');
+      Globals.Log('setOperation: oper1 and oper2 are both null');
 
       // If = was pressed, return
       if(currOp == OP_EQUAL)
         return;
 
       // Parse currFrac and set as oper1
-      Log('setOperation: this.state.currFrac = ' + this.state.currFrac)
+      Globals.Log('setOperation: this.state.currFrac = ' + this.state.currFrac)
       operandFraction = Fraction.TryParse(this.state.currFrac);
       if(operandFraction != null){
-        Log('Op1: ' + operandFraction.Display());
+        Globals.Log('Op1: ' + operandFraction.Display());
 
         //  show display
         displayData = this.state.displayedInfo;
@@ -150,7 +152,7 @@ export default class App extends React.Component {
     }
     // if oper1 is fixed, oper2 is null
     else if(this.state.oper1 != null && this.state.oper2 == null){
-      Log('oper1 is fixed; oper2 is null; currOp: ' + currOp);
+      Globals.Log('oper1 is fixed; oper2 is null; currOp: ' + currOp);
       
       // if(currOp == OP_EQUAL)
       // {
@@ -167,10 +169,10 @@ export default class App extends React.Component {
       // }
       
       // Parse currFrac and set as oper2
-      Log('CurrFrac for op2: ' + this.state.currFrac);
+      Globals.Log('CurrFrac for op2: ' + this.state.currFrac);
       operandFraction = Fraction.TryParse(this.state.currFrac.toString());
       if(operandFraction != null){
-        Log('Op2: ' + operandFraction.Display());
+        Globals.Log('Op2: ' + operandFraction.Display());
 
         //  show display
         displayData = this.state.displayedInfo;
@@ -190,7 +192,7 @@ export default class App extends React.Component {
     else {
       // if oper1 and oper2 are both fixed
       //  CASE Not possible
-      Log('oper1 is fixed; oper2 is fixed: CASE NOT Possible???');
+      Globals.Log('oper1 is fixed; oper2 is fixed: CASE NOT Possible???');
     }
 
   }
@@ -199,13 +201,13 @@ export default class App extends React.Component {
     var resultFraction;
     var displayData;
 
-    Log('getResult op: ' + this.state.operation);
-    Log('oper1: ' + this.state.oper1.Display());
-    Log('oper2: ' + this.state.oper2.Display());
+    Globals.Log('getResult op: ' + this.state.operation);
+    Globals.Log('oper1: ' + this.state.oper1.Display());
+    Globals.Log('oper2: ' + this.state.oper2.Display());
 
     // if oper1 and oper2 are both fixed
     if(this.state.oper1 != null && this.state.oper2 != null){
-      Log('getResult not nulls');
+      Globals.Log('getResult not nulls');
       //  perform operation
       switch(this.state.operation){
         case OP_ADD:
@@ -221,9 +223,9 @@ export default class App extends React.Component {
           resultFraction = Fraction.Divide(this.state.oper1, this.state.oper2);
           break;
         case OP_EQUAL:
-          Log("hitting OP_EQUAL");
+          Globals.Log("hitting OP_EQUAL");
           resultFraction = this.state.oper1;
-          displayData = this.state.displayedInfo + this.state.oper1.Display() +  "\n";
+          displayData = this.state.displayedInfo + this.state.oper1.Display() +  "\r\n";
           await this.setState({
             currFrac: resultFraction.Display(),
             displayedInfo: displayData,
@@ -242,9 +244,9 @@ export default class App extends React.Component {
         var fracString = resultFraction.Display();
         var nextOperation = this.state.nextOp;
         displayData = this.state.displayedInfo;
-        displayData += (nextOperation == OP_EQUAL) ? " " + fracString +  "\n" : '';
+        displayData += (nextOperation == OP_EQUAL) ? " " + fracString +  "\r\n" : '';
 
-        Log('getResult = ' + fracString);
+        Globals.Log('getResult = ' + fracString);
         await this.setState({
           currFrac: fracString,
           operation: (nextOperation == OP_EQUAL) ? "" : nextOperation,
@@ -259,8 +261,13 @@ export default class App extends React.Component {
   }
 
   refreshDisplay(){
-    Log('Display: ' + this.state.displayedInfo);
+    Globals.Log('Display: ' + this.state.displayedInfo);
     this.scrollView.scrollToEnd({animated:true});
+  }
+
+  setSimplify(value){
+    this.setState({alwaysSimplifyFraction : value});
+    Fraction.ALWAYS_SIMPLIFY = value;
   }
 
   render() {
@@ -404,6 +411,14 @@ export default class App extends React.Component {
                 <Text style={styles.buttonText}> {OP_ADD} </Text>
               </TouchableOpacity>
             </View>
+
+            <View style={{padding: 10, flexDirection: 'row', alignSelf: 'center', }}>
+              <Switch 
+                value={this.state.alwaysSimplifyFraction} 
+                style={{alignSelf: 'center'}}
+                onValueChange={(value) => this.setSimplify(value)}/>
+              <Text style={styles.switchText}>Always simplify fractions</Text>
+            </View>
           </ScrollView>
 
 
@@ -415,7 +430,7 @@ export default class App extends React.Component {
 
 const styles = StyleSheet.create({
   mainView: {
-    backgroundColor: 'darkgray', 
+    backgroundColor: 'lightgray', 
     flex: 1,
   },
   container: {
@@ -432,20 +447,17 @@ const styles = StyleSheet.create({
   calculationScrollView: {
     // borderWidth: 1, 
     width: 320, 
-    height: 40,
-    
+    height: 100,
+    flexGrow: 1,
+    flexShrink: 1
   },
   calculationScrollContent: {
-    paddingTop: 110,
+    paddingTop: 100,
     // borderWidth: 3, 
     // backgroundColor: 'yellow',
-    alignContent: 'flex-end',
-    alignSelf: 'flex-end',
-    alignItems: 'flex-end',
-    justifyContent: 'flex-end',
-    //flexDirection: 'column',
     position: 'relative',
-    paddingBottom: 8,
+    paddingBottom: 2,
+    textAlignVertical: 'bottom',
   },
   buttonStyle: {
     padding: 6,
@@ -455,7 +467,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',  
     borderWidth: 3,
     borderRadius: 10,  
-    backgroundColor: '#eee',
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -490,6 +502,12 @@ const styles = StyleSheet.create({
     fontSize: 35,
     fontWeight: 'bold' 
   },
+  switchText: {
+    padding: 10, 
+    fontSize: 20,
+    color: 'black',
+    fontStyle: 'italic'
+  },
   calculationText: {
     padding: 0,
     margin: 0,
@@ -505,7 +523,7 @@ const styles = StyleSheet.create({
     width: 320,  
     borderWidth: 3,
     borderRadius: 10,  
-    backgroundColor: '#eee',
+    backgroundColor: '#fff',
     color: 'white',
     fontWeight: 'bold',
     alignItems: 'flex-end',
@@ -520,8 +538,8 @@ const styles = StyleSheet.create({
   },
 });
 
-function Log(message){
-  if(LOGGING == 'on'){
-    console.log(message);
-  }
-}
+// function Log(message){
+//   if(LOGGING == 'on'){
+//     console.Globals.Log(message);
+//   }
+// }
