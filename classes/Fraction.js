@@ -1,8 +1,5 @@
 import {Globals} from '../Globals'
 
-const LOGGING = Globals.LOGGING; // 'off';
-
-
 // Fraction class
 export class Fraction {
 
@@ -22,14 +19,16 @@ export class Fraction {
         Fraction.SIMPLIFY_FRACTION = val;
     }
 
-    constructor(whole, numerator = 0, denominator = 1){
+    constructor(whole = 0, numerator = 0, denominator = 1){
         Globals.Log('Constructor input: ' + whole + ";" + numerator + ";" + denominator);
         this._wholePart = whole;
         this._fracNumerator = numerator;
-        if(denominator == 0 ) 
-            this._fracDenominator = 1
-        else
-            this._fracDenominator = denominator;
+        this._fracDenominator = (denominator == 0 ) ? 1 : denominator;
+
+        // Store origials
+        this.__origWhole = this._wholePart;
+        this.__origNum = this._fracNumerator;
+        this.__origDen = this._fracDenominator;
 
         Globals.Log('Constructed: ' + this._wholePart + Fraction.FRAC_DELIMITER
                                 + this._fracNumerator + Fraction.FRAC_SEPARATOR
@@ -73,27 +72,43 @@ export class Fraction {
 
     // Public methods
     Display(){
-    
-        // Globals.Log('Displaying: ' + this._wholePart + Fraction.FRAC_DELIMITER 
-        //                 + this._fracNumerator + Fraction.FRAC_SEPARATOR
-        //                 + this._fracDenominator);
-        // Simplify
-        this.SimplifyFraction();
+        // Check if we are returning simplified fraction
+        if(Fraction.SIMPLIFY_FRACTION){
+            // Simplify
+            this.SimplifyFraction();
 
-        if (this._wholePart != 0)
-        {
-            if (this._fracNumerator != 0)
-                // return format = "{0}_{1}/{2})"
-                return this._wholePart + Fraction.FRAC_DELIMITER + this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator;
+            if (this._wholePart != 0)
+            {
+                if (this._fracNumerator != 0)
+                    // return format = "{0}_{1}/{2})"
+                    return this._wholePart + Fraction.FRAC_DELIMITER + this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator;
+                else
+                    //return format = "{0}", 
+                    return this._wholePart;
+            }
             else
-                //return format = "{0}", 
-                return this._wholePart;
+            {
+                if (this._fracNumerator != 0)
+                    // return format = {0}/{1}
+                    return this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator;
+            }
         }
-        else
-        {
-            if (this._fracNumerator != 0)
-                // return format = {0}/{1}
-                return this._fracNumerator + Fraction.FRAC_SEPARATOR + this._fracDenominator;
+        else {
+            if (this.__origWhole != 0)
+            {
+                if (this.__origNum != 0)
+                    // return format = "{0}_{1}/{2})"
+                    return this.__origWhole + Fraction.FRAC_DELIMITER + this.__origNum + Fraction.FRAC_SEPARATOR + this.__origDen;
+                else
+                    //return format = "{0}", 
+                    return this.__origWhole;
+            }
+            else
+            {
+                if (this.__origNum != 0)
+                    // return format = {0}/{1}
+                    return this.__origNum + Fraction.FRAC_SEPARATOR + this.__origDen;
+            }            
         }
 
         return "0";
@@ -102,44 +117,10 @@ export class Fraction {
     Unmix()
     {
         // Change the mixed fraction to a regular fraction
-        this._fracNumerator += +this._wholePart * this._fracDenominator;
+        this._fracNumerator = +this._fracNumerator + (+this._wholePart * +this._fracDenominator);
         this._wholePart = 0;
         return this;
     }
-
-    // public fraction()
-    // {
-    //     _wholePart = 0;
-    //     _fracNumerator = 0;
-    //     _fracDenominator = 1;
-    // }
-
-    // public fraction(int whole)
-    // {
-    //     _wholePart = whole;
-    //     _fracNumerator = 0;
-    //     _fracDenominator = 1;
-    // }
-
-    // public fraction(int whole, int numerator, int denominator)
-    // {
-    //     _wholePart = whole;
-    //     _fracNumerator = numerator;
-    //     _fracDenominator = denominator;
-
-    //     // Simplify
-    //     SimplifyFraction();
-    // }
-
-    // public fraction(fraction operand)
-    // {
-    //     _wholePart = operand._wholePart;
-    //     _fracNumerator = operand._fracNumerator;
-    //     _fracDenominator = operand._fracDenominator;
-
-    //     // Simplify
-    //     SimplifyFraction();
-    // }
 
     static TryParse(sFraction)
     {
@@ -187,8 +168,6 @@ export class Fraction {
                             + fracDenominator);
         return new Fraction(wholePart, fracNumerator, fracDenominator);
     }
-
-
 
     // Operators
     // Add
@@ -249,83 +228,6 @@ export class Fraction {
         fraction.SimplifyFraction();
         return fraction;
     }
-
-    // // Comparison
-    // public static bool operator >(fraction operand1, fraction operand2)
-    // {
-    //     // Comparison true if:
-    //     //  n1*d2 > d1* n2
-    //     operand1.Unmix();
-    //     operand2.Unmix();
-
-    //     return (operand1._fracNumerator * operand2._fracDenominator > operand1._fracDenominator * operand2._fracNumerator);
-    // }
-
-    // public static bool operator <(fraction operand1, fraction operand2)
-    // {
-    //     // Comparison true if:
-    //     //  n1*d2 < d1* n2
-    //     operand1.Unmix();
-    //     operand2.Unmix();
-
-    //     return (operand1._fracNumerator * operand2._fracDenominator < operand1._fracDenominator * operand2._fracNumerator);
-    // }
-
-    // public static bool operator >=(fraction operand1, fraction operand2)
-    // {
-    //     // Comparison true if:
-    //     //  n1*d2 >= d1* n2
-    //     operand1.Unmix();
-    //     operand2.Unmix();
-
-    //     return (operand1._fracNumerator * operand2._fracDenominator >= operand1._fracDenominator * operand2._fracNumerator);
-    // }
-
-    // public static bool operator <=(fraction operand1, fraction operand2)
-    // {
-    //     // Comparison true if:
-    //     //  n1*d2 <= d1* n2
-    //     operand1.Unmix();
-    //     operand2.Unmix();
-
-    //     return (operand1._fracNumerator * operand2._fracDenominator <= operand1._fracDenominator * operand2._fracNumerator);
-    // }
-
-    // public static bool operator ==(fraction operand1, fraction operand2)
-    // {
-    //     // Comparison true if:
-    //     //  n1*d2 == d1* n2
-    //     operand1.Unmix();
-    //     operand2.Unmix();
-
-    //     return (operand1._fracNumerator * operand2._fracDenominator == operand1._fracDenominator * operand2._fracNumerator);
-    // }
-
-    // public static bool operator !=(fraction operand1, fraction operand2)
-    // {
-    //     // Comparison true if:
-    //     //  n1*d2 == d1* n2
-    //     operand1.Unmix();
-    //     operand2.Unmix();
-
-    //     return (operand1._fracNumerator * operand2._fracDenominator != operand1._fracDenominator * operand2._fracNumerator);
-    // }
-
-    // public override bool Equals(object obj)
-    // {
-    //     if (obj == null)
-    //         return false;
-
-    //     fraction operand = (fraction)obj;
-    //     return (this == operand);
-    // }
-
-    // public override int GetHashCode()
-    // {
-    //     // Simple hash
-    //     int hash = _wholePart ^ _fracNumerator ^ _fracDenominator;
-    //     return hash;
-    // }
 }
 
 // Generic helper functions

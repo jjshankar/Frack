@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View, Switch, ScrollView, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, Alert, View, Switch, ScrollView, TouchableOpacity, Button } from 'react-native';
 
 import {Fraction} from './classes/Fraction'
+import {MRUHistory} from './classes/MRUHistory'
 import {Globals} from './Globals'
 
 const LOGGING = Globals.LOGGING;
@@ -60,13 +61,14 @@ export default class App extends React.Component {
         case 'allcancel':
           this.setState({
             currFrac: "0",
-            displayedInfo: "\r\n",
+            displayedInfo: " \r\n",
             oper1: null,
             oper2: null,
             operation: "",
             nextOp: "",
             newOperand: true
           }, this.refreshDisplay);
+          MRUHistory.MRUClear();
           value = "0";
           return;
         case FRAC_SEPARATOR:  // "/"
@@ -211,6 +213,8 @@ export default class App extends React.Component {
       //  perform operation
       switch(this.state.operation){
         case OP_ADD:
+        Globals.Log('Adding: ' + this.state.oper1.Display() + 
+                     ' & ' + this.state.oper2.Display());
           resultFraction = Fraction.Add(this.state.oper1, this.state.oper2);
           break;
         case OP_SUBTRACT:
@@ -222,10 +226,15 @@ export default class App extends React.Component {
         case OP_DIVIDE:
           resultFraction = Fraction.Divide(this.state.oper1, this.state.oper2);
           break;
-        case OP_EQUAL:
+        case OP_EQUAL:  // NEVER HITS
           Globals.Log("hitting OP_EQUAL");
           resultFraction = this.state.oper1;
-          displayData = this.state.displayedInfo + this.state.oper1.Display() +  "\r\n";
+
+          // // Add MRU
+          // MRUHistory.MRUAdd(this.state.oper1, this.state.oper2, this.state.operation, resultFraction);
+
+          // displayData = this.state.displayedInfo + this.state.oper1.Display() +  "\r\n";
+          displayData = MRUHistory.MRUShow() + "\r\n";
           await this.setState({
             currFrac: resultFraction.Display(),
             displayedInfo: displayData,
@@ -240,12 +249,16 @@ export default class App extends React.Component {
       
       if(resultFraction != null)
       {
+        // Add MRU
+        MRUHistory.MRUAdd(this.state.oper1, this.state.oper2, this.state.operation, resultFraction);
+
         //  set result in currFrac
         var fracString = resultFraction.Display();
         var nextOperation = this.state.nextOp;
         displayData = this.state.displayedInfo;
         displayData += (nextOperation == OP_EQUAL) ? " " + fracString +  "\r\n" : '';
-
+        //displayData = MRUHistory.MRUShow();
+ 
         Globals.Log('getResult = ' + fracString);
         await this.setState({
           currFrac: fracString,
@@ -265,9 +278,46 @@ export default class App extends React.Component {
     this.scrollView.scrollToEnd({animated:true});
   }
 
-  setSimplify(value){
-    this.setState({alwaysSimplifyFraction : value});
-    Fraction.ALWAYS_SIMPLIFY = value;
+  async setSimplify(value){
+    if(!this.state.newOperand){ 
+       await Alert.alert( 'Warning',
+              'This will cancel current operation.  Continue?',
+              [
+                {text: 'Yes', onPress: () => {
+                    // var fracString = "";
+                    // var currFrac = this.state.currFrac;
+                    
+                    // if(this.state.oper1 != null){
+                    //   fracString = this.state.oper1.Display();
+                    // }
+              
+                    Fraction.ALWAYS_SIMPLIFY = value;
+                    console.log(MRUHistory.MRUShow());
+                    this.setState({
+                      currFrac: 0, //(fracString == currFrac)? fracString : currFrac,
+                      alwaysSimplifyFraction : value,
+                      displayedInfo: MRUHistory.MRUShow() //+ '\r\n' + displayData,
+                    }, this.refreshDisplay);
+                  } 
+                },
+                {text: 'No'}
+              ],
+              {cancelable: false}
+            );
+    }
+    else {
+      Fraction.ALWAYS_SIMPLIFY = value;
+      this.setState({
+        currFrac: 0, //(fracString == currFrac)? fracString : currFrac,
+        oper1: null,
+        oper2: null,
+        operation: '',
+        nextOp: '',
+        newOperand: true,
+        alwaysSimplifyFraction : value,
+        displayedInfo: MRUHistory.MRUShow() + '\r\n',
+      }, this.refreshDisplay);
+    }
   }
 
   render() {
@@ -432,6 +482,8 @@ const styles = StyleSheet.create({
   mainView: {
     backgroundColor: 'lightgray', 
     flex: 1,
+    flexShrink: 1,
+    flexGrow: 1
   },
   container: {
     flex: 1,
@@ -456,7 +508,7 @@ const styles = StyleSheet.create({
     // borderWidth: 3, 
     // backgroundColor: 'yellow',
     position: 'relative',
-    paddingBottom: 2,
+    paddingBottom: 12,
     textAlignVertical: 'bottom',
   },
   buttonStyle: {
