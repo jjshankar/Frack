@@ -1,13 +1,17 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
- * <p>This source code is licensed under the MIT license found in the LICENSE file in the root
- * directory of this source tree.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
+
 package com.facebook.react;
 
+import androidx.annotation.Nullable;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.module.model.ReactModuleInfo;
+import com.facebook.react.module.model.ReactModuleInfoProvider;
 import com.facebook.react.uimanager.ViewManager;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +21,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * {@code CompositeReactPackage} allows to create a single package composed of views and modules
@@ -28,7 +31,7 @@ public class CompositeReactPackage implements ViewManagerOnDemandReactPackage, R
   private final List<ReactPackage> mChildReactPackages = new ArrayList<>();
 
   /**
-   * The order in which packages are passed matters. It may happen that a NativeModule or or a
+   * The order in which packages are passed matters. It may happen that a NativeModule or a
    * ViewManager exists in two or more ReactPackages. In that case the latter will win i.e. the
    * latter will overwrite the former. This re-occurrence is detected by comparing a name of a
    * module.
@@ -46,6 +49,25 @@ public class CompositeReactPackage implements ViewManagerOnDemandReactPackage, R
     // This is for backward compatibility.
     final Map<String, NativeModule> moduleMap = new HashMap<>();
     for (ReactPackage reactPackage : mChildReactPackages) {
+      /**
+       * For now, we eagerly initialize the NativeModules inside TurboReactPackages. Ultimately, we
+       * should turn CompositeReactPackage into a TurboReactPackage and remove this eager
+       * initialization.
+       *
+       * <p>TODO: T45627020
+       */
+      if (reactPackage instanceof TurboReactPackage) {
+        TurboReactPackage turboReactPackage = (TurboReactPackage) reactPackage;
+        ReactModuleInfoProvider moduleInfoProvider = turboReactPackage.getReactModuleInfoProvider();
+        Map<String, ReactModuleInfo> moduleInfos = moduleInfoProvider.getReactModuleInfos();
+
+        for (final String moduleName : moduleInfos.keySet()) {
+          moduleMap.put(moduleName, turboReactPackage.getModule(moduleName, reactContext));
+        }
+
+        continue;
+      }
+
       for (NativeModule nativeModule : reactPackage.createNativeModules(reactContext)) {
         moduleMap.put(nativeModule.getName(), nativeModule);
       }

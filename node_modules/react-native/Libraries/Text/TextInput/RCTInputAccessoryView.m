@@ -1,17 +1,17 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-#import "RCTInputAccessoryView.h"
+#import <React/RCTInputAccessoryView.h>
 
 #import <React/RCTBridge.h>
 #import <React/RCTTouchHandler.h>
 #import <React/UIView+React.h>
 
-#import "RCTInputAccessoryViewContent.h"
+#import <React/RCTInputAccessoryViewContent.h>
 
 @interface RCTInputAccessoryView()
 
@@ -42,7 +42,7 @@
 
 - (void)reactSetFrame:(CGRect)frame
 {
-  [_inputAccessoryView setFrame:frame];
+  [_inputAccessoryView reactSetFrame:frame];
 
   if (_shouldBecomeFirstResponder) {
     _shouldBecomeFirstResponder = NO;

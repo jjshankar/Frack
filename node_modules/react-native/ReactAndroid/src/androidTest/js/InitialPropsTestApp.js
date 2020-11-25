@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,13 +9,12 @@
 
 'use strict';
 
-var React = require('React');
-var RecordingModule = require('NativeModules').InitialPropsRecordingModule;
-var Text = require('Text');
+const React = require('react');
+const {NativeModules, Text} = require('react-native');
 
 class InitialPropsTestApp extends React.Component {
   componentDidMount() {
-    RecordingModule.recordProps(this.props);
+    NativeModules.InitialPropsRecordingModule.recordProps(this.props);
   }
 
   render() {

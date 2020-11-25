@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,11 +9,11 @@
 
 'use strict';
 
-var BatchedBridge = require('BatchedBridge');
-var React = require('React');
-var RecordingModule = require('NativeModules').ShareRecordingModule;
-var Share = require('Share');
-var View = require('View');
+const React = require('react');
+const {NativeModules, Share, View} = require('react-native');
+const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
+
+const {ShareRecordingModule: RecordingModule} = NativeModules;
 
 class ShareTestApp extends React.Component {
   render() {
@@ -21,7 +21,7 @@ class ShareTestApp extends React.Component {
   }
 }
 
-var ShareTestModule = {
+const ShareTestModule = {
   ShareTestApp: ShareTestApp,
   showShareDialog: function(content, options) {
     Share.share(content, options).then(

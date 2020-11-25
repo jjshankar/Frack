@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,19 +9,10 @@
 
 'use strict';
 
-var BatchedBridge = require('BatchedBridge');
-var React = require('React');
-var View = require('View');
-var StyleSheet = require('StyleSheet');
-
-var renderApplication = require('renderApplication');
-
-var styles = StyleSheet.create({
-  view: {
-    opacity: 0.75,
-    backgroundColor: 'rgb(255, 0, 0)',
-  },
-});
+const React = require('react');
+const {StyleSheet, View} = require('react-native');
+const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
+const renderApplication = require('react-native/Libraries/ReactNative/renderApplication');
 
 class ViewSampleApp extends React.Component {
   state = {};
@@ -31,7 +22,7 @@ class ViewSampleApp extends React.Component {
   }
 }
 
-var updateMargins;
+let updateMargins;
 
 class MarginSampleApp extends React.Component {
   state = {margin: 10};
@@ -40,7 +31,7 @@ class MarginSampleApp extends React.Component {
     updateMargins = this.setState.bind(this, {margin: 15});
     return (
       <View
-        style={{margin: this.state.margin, marginLeft: 20}}
+        style={[{margin: this.state.margin}, styles.marginSample]}
         collapsable={false}
       />
     );
@@ -50,13 +41,8 @@ class MarginSampleApp extends React.Component {
 class BorderSampleApp extends React.Component {
   render() {
     return (
-      <View
-        style={{borderLeftWidth: 20, borderWidth: 5, backgroundColor: 'blue'}}
-        collapsable={false}>
-        <View
-          style={{backgroundColor: 'red', width: 20, height: 20}}
-          collapsable={false}
-        />
+      <View style={styles.borderSample} collapsable={false}>
+        <View style={styles.borderSampleContent} collapsable={false} />
       </View>
     );
   }
@@ -64,7 +50,7 @@ class BorderSampleApp extends React.Component {
 
 class TransformSampleApp extends React.Component {
   render() {
-    var style = {
+    const style = {
       transform: [
         {translateX: 20},
         {translateY: 25},
@@ -77,7 +63,7 @@ class TransformSampleApp extends React.Component {
   }
 }
 
-var ViewRenderingTestModule = {
+const ViewRenderingTestModule = {
   renderViewApplication: function(rootTag) {
     renderApplication(ViewSampleApp, {}, rootTag);
   },
@@ -99,5 +85,25 @@ BatchedBridge.registerCallableModule(
   'ViewRenderingTestModule',
   ViewRenderingTestModule,
 );
+
+const styles = StyleSheet.create({
+  view: {
+    opacity: 0.75,
+    backgroundColor: 'rgb(255, 0, 0)',
+  },
+  borderSample: {
+    borderLeftWidth: 20,
+    borderWidth: 5,
+    backgroundColor: 'blue',
+  },
+  borderSampleContent: {
+    backgroundColor: 'red',
+    width: 20,
+    height: 20,
+  },
+  marginSample: {
+    marginLeft: 20,
+  },
+});
 
 module.exports = ViewRenderingTestModule;

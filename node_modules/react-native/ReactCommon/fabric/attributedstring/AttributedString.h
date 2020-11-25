@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,13 +7,16 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 
-#include <fabric/attributedstring/TextAttributes.h>
-#include <fabric/core/Sealable.h>
-#include <fabric/core/ShadowNode.h>
-#include <fabric/debug/DebugStringConvertible.h>
+#include <folly/Hash.h>
 #include <folly/Optional.h>
+#include <react/attributedstring/TextAttributes.h>
+#include <react/core/Sealable.h>
+#include <react/core/ShadowNode.h>
+#include <react/debug/DebugStringConvertible.h>
+#include <react/mounting/ShadowView.h>
 
 namespace facebook {
 namespace react {
@@ -28,20 +31,33 @@ using SharedAttributedString = std::shared_ptr<const AttributedString>;
  * `AttributedString` is basically a list of `Fragments` which have `string` and
  * `textAttributes` + `shadowNode` associated with the `string`.
  */
-class AttributedString:
-  public Sealable,
-  public DebugStringConvertible {
-
-public:
-
+class AttributedString : public Sealable, public DebugStringConvertible {
+ public:
   class Fragment {
-  public:
+   public:
+    static std::string AttachmentCharacter();
+
     std::string string;
     TextAttributes textAttributes;
-    SharedShadowNode shadowNode;
+    ShadowView parentShadowView;
+
+    /*
+     * Returns true is the Fragment represents an attachment.
+     * Equivalent to `string == AttachmentCharacter()`.
+     */
+    bool isAttachment() const;
+
+    bool operator==(const Fragment &rhs) const;
+    bool operator!=(const Fragment &rhs) const;
   };
 
-  using Fragments = std::vector<Fragment>;
+  class Range {
+   public:
+    int location{0};
+    int length{0};
+  };
+
+  using Fragments = better::small_vector<Fragment, 1>;
 
   /*
    * Appends and prepends a `fragment` to the string.
@@ -57,23 +73,67 @@ public:
   void prependAttributedString(const AttributedString &attributedString);
 
   /*
-   * Returns read-only reference to a list of fragments.
+   * Returns a read-only reference to a list of fragments.
    */
-  const Fragments &getFragments() const;
+  Fragments const &getFragments() const;
+
+  /*
+   * Returns a reference to a list of fragments.
+   */
+  Fragments &getFragments();
 
   /*
    * Returns a string constructed from all strings in all fragments.
    */
   std::string getString() const;
 
+  /*
+   * Returns `true` if the string is empty (has no any fragments).
+   */
+  bool isEmpty() const;
+
+  /**
+   * Compares equality of TextAttributes of all Fragments on both sides.
+   */
+  bool compareTextAttributesWithoutFrame(const AttributedString &rhs) const;
+
+  bool operator==(const AttributedString &rhs) const;
+  bool operator!=(const AttributedString &rhs) const;
+
 #pragma mark - DebugStringConvertible
 
+#if RN_DEBUG_STRING_CONVERTIBLE
   SharedDebugStringConvertibleList getDebugChildren() const override;
+#endif
 
-private:
-
+ private:
   Fragments fragments_;
 };
 
 } // namespace react
 } // namespace facebook
+
+namespace std {
+template <>
+struct hash<facebook::react::AttributedString::Fragment> {
+  size_t operator()(
+      const facebook::react::AttributedString::Fragment &fragment) const {
+    return folly::hash::hash_combine(
+        0, fragment.string, fragment.textAttributes, fragment.parentShadowView);
+  }
+};
+
+template <>
+struct hash<facebook::react::AttributedString> {
+  size_t operator()(
+      const facebook::react::AttributedString &attributedString) const {
+    auto seed = size_t{0};
+
+    for (const auto &fragment : attributedString.getFragments()) {
+      seed = folly::hash::hash_combine(seed, fragment);
+    }
+
+    return seed;
+  }
+};
+} // namespace std

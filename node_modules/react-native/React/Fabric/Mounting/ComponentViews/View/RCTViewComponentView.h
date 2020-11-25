@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,21 +8,23 @@
 #import <UIKit/UIKit.h>
 
 #import <React/RCTComponentViewProtocol.h>
+#import <React/RCTTouchableComponentViewProtocol.h>
 #import <React/UIView+ComponentViewProtocol.h>
-#import <fabric/core/LayoutMetrics.h>
-#import <fabric/core/Props.h>
-#import <fabric/components/view/ViewEventEmitter.h>
-#import <fabric/events/EventEmitter.h>
+#import <react/components/view/ViewEventEmitter.h>
+#import <react/components/view/ViewProps.h>
+#import <react/core/EventEmitter.h>
+#import <react/core/LayoutMetrics.h>
+#import <react/core/Props.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
  * UIView class for <View> component.
  */
-@interface RCTViewComponentView : UIView <RCTComponentViewProtocol> {
-@protected
+@interface RCTViewComponentView : UIView <RCTComponentViewProtocol, RCTTouchableComponentViewProtocol> {
+ @protected
   facebook::react::LayoutMetrics _layoutMetrics;
-  facebook::react::SharedProps _props;
+  facebook::react::SharedViewProps _props;
   facebook::react::SharedViewEventEmitter _eventEmitter;
 }
 
@@ -32,7 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
  * and `padding`) of the component.
  * This view must not be a component view; it's just a convenient way
  * to embed/bridge pure native views as component views.
- * Defaults to `nil`. Assing `nil` to remove view as subview.
+ * Defaults to `nil`. Assign `nil` to remove view as subview.
  */
 @property (nonatomic, strong, nullable) UIView *contentView;
 
@@ -65,6 +67,23 @@ NS_ASSUME_NONNULL_BEGIN
  * Insets used when hit testing inside this view.
  */
 @property (nonatomic, assign) UIEdgeInsets hitTestEdgeInsets;
+
+/**
+ * Enforcing `call super` semantic for overridden methods from `RCTComponentViewProtocol`.
+ * The methods update the instance variables.
+ */
+- (void)updateProps:(facebook::react::Props::Shared const &)props
+           oldProps:(facebook::react::Props::Shared const &)oldProps NS_REQUIRES_SUPER;
+- (void)updateEventEmitter:(facebook::react::EventEmitter::Shared const &)eventEmitter NS_REQUIRES_SUPER;
+- (void)updateLayoutMetrics:(facebook::react::LayoutMetrics const &)layoutMetrics
+           oldLayoutMetrics:(facebook::react::LayoutMetrics const &)oldLayoutMetrics NS_REQUIRES_SUPER;
+- (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask NS_REQUIRES_SUPER;
+- (void)prepareForRecycle NS_REQUIRES_SUPER;
+
+/*
+ * This is a fragment of temporary workaround that we need only temporary and will get rid of soon.
+ */
+- (NSString *)componentViewName_DO_NOT_USE_THIS_IS_BROKEN;
 
 @end
 

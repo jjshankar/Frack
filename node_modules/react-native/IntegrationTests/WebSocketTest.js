@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -18,12 +18,6 @@ const {TestModule} = ReactNative.NativeModules;
 const DEFAULT_WS_URL = 'ws://localhost:5555/';
 
 const WS_EVENTS = ['close', 'error', 'message', 'open'];
-const WS_STATES = [
-  /* 0 */ 'CONNECTING',
-  /* 1 */ 'OPEN',
-  /* 2 */ 'CLOSING',
-  /* 3 */ 'CLOSED',
-];
 
 type State = {
   url: string,
@@ -34,9 +28,10 @@ type State = {
   lastMessage: ?string | ?ArrayBuffer,
   testMessage: string,
   testExpectedResponse: string,
+  ...
 };
 
-class WebSocketTest extends React.Component<{}, State> {
+class WebSocketTest extends React.Component<{...}, State> {
   state: State = {
     url: DEFAULT_WS_URL,
     fetchStatus: null,
@@ -50,7 +45,6 @@ class WebSocketTest extends React.Component<{}, State> {
 
   _waitFor = (condition: any, timeout: any, callback: any) => {
     let remaining = timeout;
-    let t;
     const timeoutFunction = function() {
       if (condition()) {
         callback(true);
@@ -60,10 +54,10 @@ class WebSocketTest extends React.Component<{}, State> {
       if (remaining === 0) {
         callback(false);
       } else {
-        t = setTimeout(timeoutFunction, 1000);
+        setTimeout(timeoutFunction, 1000);
       }
     };
-    t = setTimeout(timeoutFunction, 1000);
+    setTimeout(timeoutFunction, 1000);
   };
 
   _connect = () => {
@@ -120,40 +114,31 @@ class WebSocketTest extends React.Component<{}, State> {
     this.testConnect();
   }
 
-  testConnect = () => {
-    const component = this;
-    component._connect();
-    component._waitFor(component._socketIsConnected, 5, function(
-      connectSucceeded,
-    ) {
+  testConnect: () => void = () => {
+    this._connect();
+    this._waitFor(this._socketIsConnected, 5, connectSucceeded => {
       if (!connectSucceeded) {
         TestModule.markTestPassed(false);
         return;
       }
-      component.testSendAndReceive();
+      this.testSendAndReceive();
     });
   };
 
-  testSendAndReceive = () => {
-    const component = this;
-    component._sendTestMessage();
-    component._waitFor(component._receivedTestExpectedResponse, 5, function(
-      messageReceived,
-    ) {
+  testSendAndReceive: () => void = () => {
+    this._sendTestMessage();
+    this._waitFor(this._receivedTestExpectedResponse, 5, messageReceived => {
       if (!messageReceived) {
         TestModule.markTestPassed(false);
         return;
       }
-      component.testDisconnect();
+      this.testDisconnect();
     });
   };
 
-  testDisconnect = () => {
-    const component = this;
-    component._disconnect();
-    component._waitFor(component._socketIsDisconnected, 5, function(
-      disconnectSucceeded,
-    ) {
+  testDisconnect: () => void = () => {
+    this._disconnect();
+    this._waitFor(this._socketIsDisconnected, 5, disconnectSucceeded => {
       TestModule.markTestPassed(disconnectSucceeded);
     });
   };

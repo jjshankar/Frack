@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include <fabric/core/ShadowNode.h>
-#include <fabric/core/ReactPrimitives.h>
+#include <react/core/ReactPrimitives.h>
+#include <react/core/ShadowNode.h>
+#include <react/mounting/MountingCoordinator.h>
 
 namespace facebook {
 namespace react {
@@ -17,20 +18,44 @@ namespace react {
  * Abstract class for UIManager's delegate.
  */
 class UIManagerDelegate {
-public:
-
+ public:
   /*
-   * Called right after the new/updated Shadow Node tree is constructed.
-   * The tree is not layed out and not sealed at this time.
+   * Called right after a new/updated Shadow Node tree is constructed.
+   * For this moment the tree is already laid out and sealed.
    */
-  virtual void uiManagerDidFinishTransaction(Tag rootTag, const SharedShadowNodeUnsharedList &rootChildNodes) = 0;
+  virtual void uiManagerDidFinishTransaction(
+      MountingCoordinator::Shared const &mountingCoordinator) = 0;
 
   /*
    * Called each time when UIManager constructs a new Shadow Node. Receiver
-   * maight use this to preluminary optimistically allocate a new native view
+   * might use this to optimistically allocate a new native view
    * instances.
    */
-  virtual void uiManagerDidCreateShadowNode(const SharedShadowNode &shadowNode) = 0;
+  virtual void uiManagerDidCreateShadowNode(
+      const ShadowNode::Shared &shadowNode) = 0;
+
+  /*
+   * Called when UIManager wants to dispatch a command to the mounting layer.
+   */
+  virtual void uiManagerDidDispatchCommand(
+      const ShadowNode::Shared &shadowNode,
+      std::string const &commandName,
+      folly::dynamic const args) = 0;
+
+  /*
+   * Set JS responder for a view
+   */
+  virtual void uiManagerDidSetJSResponder(
+      SurfaceId surfaceId,
+      ShadowNode::Shared const &shadowView,
+      bool blockNativeResponder) = 0;
+
+  /*
+   * Clear the JSResponder for a view
+   */
+  virtual void uiManagerDidClearJSResponder() = 0;
+
+  virtual ~UIManagerDelegate() noexcept = default;
 };
 
 } // namespace react

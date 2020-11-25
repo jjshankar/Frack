@@ -1,79 +1,117 @@
-// Copyright (c) 2004-present, Facebook, Inc.
-
-// This source code is licensed under the MIT license found in the
-// LICENSE file in the root directory of this source tree.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 #pragma once
 
 #include <memory>
+#include <mutex>
 
-#include <fabric/core/ComponentDescriptor.h>
-#include <fabric/core/LayoutConstraints.h>
-#include <fabric/uimanager/ContextContainer.h>
-#include <fabric/uimanager/SchedulerDelegate.h>
-#include <fabric/uimanager/SchedulerEventDispatcher.h>
-#include <fabric/uimanager/UIManagerDelegate.h>
-#include <fabric/uimanager/ShadowTree.h>
-#include <fabric/uimanager/ShadowTreeDelegate.h>
+#include <react/components/root/RootComponentDescriptor.h>
+#include <react/config/ReactNativeConfig.h>
+#include <react/core/ComponentDescriptor.h>
+#include <react/core/LayoutConstraints.h>
+#include <react/uimanager/ComponentDescriptorFactory.h>
+#include <react/uimanager/ComponentDescriptorRegistry.h>
+#include <react/uimanager/SchedulerDelegate.h>
+#include <react/uimanager/SchedulerToolbox.h>
+#include <react/uimanager/UIManagerBinding.h>
+#include <react/uimanager/UIManagerDelegate.h>
+#include <react/utils/ContextContainer.h>
+#include <react/utils/RuntimeExecutor.h>
 
 namespace facebook {
 namespace react {
 
-class FabricUIManager;
-
 /*
  * Scheduler coordinates Shadow Tree updates and event flows.
  */
-class Scheduler final:
-  public UIManagerDelegate,
-  public ShadowTreeDelegate {
-
-public:
-
-  Scheduler(const SharedContextContainer &contextContainer);
+class Scheduler final : public UIManagerDelegate {
+ public:
+  Scheduler(SchedulerToolbox schedulerToolbox, SchedulerDelegate *delegate);
   ~Scheduler();
 
-#pragma mark - Shadow Tree Management
+#pragma mark - Surface Management
 
-  void registerRootTag(Tag rootTag);
-  void unregisterRootTag(Tag rootTag);
+  void startSurface(
+      SurfaceId surfaceId,
+      const std::string &moduleName,
+      const folly::dynamic &initialProps,
+      const LayoutConstraints &layoutConstraints = {},
+      const LayoutContext &layoutContext = {}) const;
 
-  Size measure(const Tag &rootTag, const LayoutConstraints &layoutConstraints, const LayoutContext &layoutContext) const;
-  void constraintLayout(const Tag &rootTag, const LayoutConstraints &layoutConstraints, const LayoutContext &layoutContext);
+  void renderTemplateToSurface(
+      SurfaceId surfaceId,
+      const std::string &uiTemplate);
+
+  void stopSurface(SurfaceId surfaceId) const;
+
+  Size measureSurface(
+      SurfaceId surfaceId,
+      const LayoutConstraints &layoutConstraints,
+      const LayoutContext &layoutContext) const;
+
+  /*
+   * Applies given `layoutConstraints` and `layoutContext` to a Surface.
+   * The user interface will be relaid out as a result. The operation will be
+   * performed synchronously (including mounting) if the method is called
+   * on the main thread.
+   * Can be called from any thread.
+   */
+  void constraintSurfaceLayout(
+      SurfaceId surfaceId,
+      const LayoutConstraints &layoutConstraints,
+      const LayoutContext &layoutContext) const;
+
+  /*
+   * This is broken. Please do not use.
+   * `ComponentDescriptor`s are not designed to be used outside of `UIManager`,
+   * there is no any garantees about their lifetime.
+   */
+  ComponentDescriptor const *
+  findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(
+      ComponentHandle handle) const;
+
+  MountingCoordinator::Shared findMountingCoordinator(
+      SurfaceId surfaceId) const;
 
 #pragma mark - Delegate
 
   /*
    * Sets and gets the Scheduler's delegate.
-   * The delegate is stored as a raw pointer, so the owner must null
-   * the pointer before being destroyed.
+   * If you requesting a ComponentDescriptor and unsure that it's there, you are
+   * doing something wrong.
    */
   void setDelegate(SchedulerDelegate *delegate);
   SchedulerDelegate *getDelegate() const;
 
 #pragma mark - UIManagerDelegate
 
-  void uiManagerDidFinishTransaction(Tag rootTag, const SharedShadowNodeUnsharedList &rootChildNodes) override;
-  void uiManagerDidCreateShadowNode(const SharedShadowNode &shadowNode) override;
+  void uiManagerDidFinishTransaction(
+      MountingCoordinator::Shared const &mountingCoordinator) override;
+  void uiManagerDidCreateShadowNode(
+      const ShadowNode::Shared &shadowNode) override;
+  void uiManagerDidDispatchCommand(
+      const ShadowNode::Shared &shadowNode,
+      std::string const &commandName,
+      folly::dynamic const args) override;
+  void uiManagerDidSetJSResponder(
+      SurfaceId surfaceId,
+      const ShadowNode::Shared &shadowView,
+      bool blockNativeResponder) override;
+  void uiManagerDidClearJSResponder() override;
 
-#pragma mark - ShadowTreeDelegate
-
-  void shadowTreeDidCommit(const SharedShadowTree &shadowTree, const TreeMutationInstructionList &instructions) override;
-
-#pragma mark - Deprecated
-
-  /*
-   * UIManager instance must be temporarily exposed for registration purposes.
-   */
-  std::shared_ptr<FabricUIManager> getUIManager_DO_NOT_USE();
-
-private:
-
+ private:
   SchedulerDelegate *delegate_;
-  std::shared_ptr<FabricUIManager> uiManager_;
-  std::unordered_map<Tag, SharedShadowTree> shadowTreeRegistry_;
-  SharedSchedulerEventDispatcher eventDispatcher_;
-  SharedContextContainer contextContainer_;
+  SharedComponentDescriptorRegistry componentDescriptorRegistry_;
+  std::unique_ptr<const RootComponentDescriptor> rootComponentDescriptor_;
+  RuntimeExecutor runtimeExecutor_;
+  std::shared_ptr<UIManager> uiManager_;
+  std::shared_ptr<const ReactNativeConfig> reactNativeConfig_;
+  EventDispatcher::Shared eventDispatcher_;
 };
 
 } // namespace react

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,7 +8,7 @@
  * @format
  */
 
-const registry: {[key: string]: number} = {};
+const registry: {[key: string]: number, ...} = {};
 
 const register = (id: string) => {
   if (registry[id]) {
@@ -27,7 +27,7 @@ const unregister = (id: string) => {
   }
 };
 
-const has = (id: string) => {
+const has = (id: string): number | boolean => {
   return registry[id] && registry[id] > 0;
 };
 

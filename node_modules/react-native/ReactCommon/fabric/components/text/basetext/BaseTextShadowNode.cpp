@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,49 +7,71 @@
 
 #include "BaseTextShadowNode.h"
 
-#include <fabric/components/text/RawTextShadowNode.h>
-#include <fabric/components/text/RawTextProps.h>
-#include <fabric/components/text/TextShadowNode.h>
-#include <fabric/components/text/TextProps.h>
-#include <fabric/debug/DebugStringConvertibleItem.h>
+#include <react/components/text/RawTextProps.h>
+#include <react/components/text/RawTextShadowNode.h>
+#include <react/components/text/TextProps.h>
+#include <react/components/text/TextShadowNode.h>
+#include <react/mounting/ShadowView.h>
 
 namespace facebook {
 namespace react {
 
-AttributedString BaseTextShadowNode::getAttributedString(
-  const TextAttributes &textAttributes,
-  const SharedShadowNodeList &childNodes
-) const {
-  AttributedString attributedString;
+inline ShadowView shadowViewFromShadowNode(ShadowNode const &shadowNode) {
+  auto shadowView = ShadowView{shadowNode};
+  // Clearing `props` and `state` (which we don't use) allows avoiding retain
+  // cycles.
+  shadowView.props = nullptr;
+  shadowView.state = nullptr;
+  return shadowView;
+}
 
-  for (const auto &childNode : childNodes) {
+void BaseTextShadowNode::buildAttributedString(
+    TextAttributes const &baseTextAttributes,
+    ShadowNode const &parentNode,
+    AttributedString &outAttributedString,
+    Attachments &outAttachments) {
+  for (auto const &childNode : parentNode.getChildren()) {
     // RawShadowNode
-    auto rawTextShadowNode = std::dynamic_pointer_cast<const RawTextShadowNode>(childNode);
+    auto rawTextShadowNode =
+        std::dynamic_pointer_cast<RawTextShadowNode const>(childNode);
     if (rawTextShadowNode) {
-      AttributedString::Fragment fragment;
-      fragment.string = rawTextShadowNode->getProps()->text;
-      fragment.textAttributes = textAttributes;
-      attributedString.appendFragment(fragment);
+      auto fragment = AttributedString::Fragment{};
+      fragment.string = rawTextShadowNode->getConcreteProps().text;
+      fragment.textAttributes = baseTextAttributes;
+
+      // Storing a retaining pointer to `ParagraphShadowNode` inside
+      // `attributedString` causes a retain cycle (besides that fact that we
+      // don't need it at all). Storing a `ShadowView` instance instead of
+      // `ShadowNode` should properly fix this problem.
+      fragment.parentShadowView = shadowViewFromShadowNode(parentNode);
+      outAttributedString.appendFragment(fragment);
       continue;
     }
 
     // TextShadowNode
-    auto textShadowNode = std::dynamic_pointer_cast<const TextShadowNode>(childNode);
+    auto textShadowNode =
+        std::dynamic_pointer_cast<TextShadowNode const>(childNode);
     if (textShadowNode) {
-      TextAttributes localTextAttributes = textAttributes;
-      localTextAttributes.apply(textShadowNode->getProps()->textAttributes);
-      attributedString.appendAttributedString(textShadowNode->getAttributedString(localTextAttributes, textShadowNode->getChildren()));
+      auto localTextAttributes = baseTextAttributes;
+      localTextAttributes.apply(
+          textShadowNode->getConcreteProps().textAttributes);
+      buildAttributedString(
+          localTextAttributes,
+          *textShadowNode,
+          outAttributedString,
+          outAttachments);
       continue;
     }
 
-    // Any other kind of ShadowNode
-    AttributedString::Fragment fragment;
-    fragment.shadowNode = childNode;
-    fragment.textAttributes = textAttributes;
-    attributedString.appendFragment(fragment);
+    // Any *other* kind of ShadowNode
+    auto fragment = AttributedString::Fragment{};
+    fragment.string = AttributedString::Fragment::AttachmentCharacter();
+    fragment.parentShadowView = shadowViewFromShadowNode(*childNode);
+    fragment.textAttributes = baseTextAttributes;
+    outAttributedString.appendFragment(fragment);
+    outAttachments.push_back(Attachment{
+        childNode.get(), outAttributedString.getFragments().size() - 1});
   }
-
-  return attributedString;
 }
 
 } // namespace react

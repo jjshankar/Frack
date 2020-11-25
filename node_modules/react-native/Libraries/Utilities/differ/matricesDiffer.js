@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -30,6 +30,7 @@ const matricesDiffer = function(one, two) {
     one[14] !== two[14] ||
     one[5] !== two[5] ||
     one[10] !== two[10] ||
+    one[0] !== two[0] ||
     one[1] !== two[1] ||
     one[2] !== two[2] ||
     one[3] !== two[3] ||

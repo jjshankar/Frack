@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,17 +7,35 @@
 
 #import <UIKit/UIKit.h>
 
-#include <fabric/attributedstring/AttributedString.h>
-#include <fabric/attributedstring/TextAttributes.h>
+#include <react/attributedstring/AttributedString.h>
+#include <react/attributedstring/AttributedStringBox.h>
+#include <react/attributedstring/TextAttributes.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 NSString *const RCTAttributedStringIsHighlightedAttributeName = @"IsHighlighted";
-NSString *const RCTAttributedStringReactTagAttributeName = @"ReactTag";
+NSString *const RCTAttributedStringEventEmitterKey = @"EventEmitter";
 
-/**
- * Constructs ready-to-render `NSAttributedString` by given `AttributedString`.
+/*
+ * Creates `NSTextAttributes` from given `facebook::react::TextAttributes`
  */
-NSAttributedString *RCTNSAttributedStringFromAttributedString(const facebook::react::AttributedString &attributedString);
+NSDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttributes(
+    facebook::react::TextAttributes const &textAttributes);
+
+/*
+ * Conversions amond `NSAttributedString`, `AttributedString` and `AttributedStringBox`.
+ */
+NSAttributedString *RCTNSAttributedStringFromAttributedString(
+    facebook::react::AttributedString const &attributedString);
+
+NSAttributedString *RCTNSAttributedStringFromAttributedStringBox(
+    facebook::react::AttributedStringBox const &attributedStringBox);
+
+facebook::react::AttributedStringBox RCTAttributedStringBoxFromNSAttributedString(
+    NSAttributedString *nsAttributedString);
+
+@interface RCTWeakEventEmitterWrapper : NSObject
+@property (nonatomic, assign) facebook::react::SharedEventEmitter eventEmitter;
+@end
 
 NS_ASSUME_NONNULL_END

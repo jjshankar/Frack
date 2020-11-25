@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,17 +9,18 @@
 
 'use strict';
 
-var Image = require('Image');
-var React = require('React');
-var StyleSheet = require('StyleSheet');
-var Switch = require('Switch');
-var Text = require('Text');
-var TextInput = require('TextInput');
-var TouchableBounce = require('TouchableBounce');
-var TouchableHighlight = require('TouchableHighlight');
-var TouchableOpacity = require('TouchableOpacity');
-var TouchableWithoutFeedback = require('TouchableWithoutFeedback');
-var View = require('View');
+const React = require('react');
+const {
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableHighlight,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} = require('react-native');
+const TouchableBounce = require('react-native/Libraries/Components/Touchable/TouchableBounce');
 
 /**
  * All the views implemented on Android, each with the testID property set.
@@ -73,7 +74,7 @@ class TestIdTestApp extends React.Component {
   }
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   base: {
     width: 150,
     height: 50,

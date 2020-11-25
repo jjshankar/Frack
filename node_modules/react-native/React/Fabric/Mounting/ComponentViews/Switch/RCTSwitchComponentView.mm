@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,14 +7,20 @@
 
 #import "RCTSwitchComponentView.h"
 
-#import <fabric/components/switch/SwitchEventEmitter.h>
-#import <fabric/components/switch/SwitchProps.h>
+#import <react/components/rncore/ComponentDescriptors.h>
+#import <react/components/rncore/EventEmitters.h>
+#import <react/components/rncore/Props.h>
+#import <react/components/rncore/RCTComponentViewHelpers.h>
+
+#import "FBRCTFabricComponentsPlugins.h"
 
 using namespace facebook::react;
 
+@interface RCTSwitchComponentView () <RCTSwitchViewProtocol>
+@end
+
 @implementation RCTSwitchComponentView {
   UISwitch *_switchView;
-  BOOL _wasOn;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -22,36 +28,44 @@ using namespace facebook::react;
   if (self = [super initWithFrame:frame]) {
     _switchView = [[UISwitch alloc] initWithFrame:self.bounds];
 
-    [_switchView addTarget:self
-                 action:@selector(onChange:)
-       forControlEvents:UIControlEventValueChanged];
-
-    const auto &defaultProps = SwitchProps();
-
-    _switchView.on = defaultProps.value;
+    [_switchView addTarget:self action:@selector(onChange:) forControlEvents:UIControlEventValueChanged];
 
     self.contentView = _switchView;
+
+    [self setPropsToDefault];
   }
 
   return self;
 }
 
-- (void)updateProps:(SharedProps)props oldProps:(SharedProps)oldProps
+- (void)setPropsToDefault
 {
-  if (!oldProps) {
-    oldProps = _props ?: std::make_shared<SwitchProps>();
-  }
-  _props = props;
+  static const auto defaultProps = std::make_shared<const SwitchProps>();
+  _props = defaultProps;
+  _switchView.on = defaultProps->value;
+}
 
-  [super updateProps:props oldProps:oldProps];
+#pragma mark - RCTComponentViewProtocol
 
-  auto oldSwitchProps = *std::dynamic_pointer_cast<const SwitchProps>(oldProps);
-  auto newSwitchProps = *std::dynamic_pointer_cast<const SwitchProps>(props);
+- (void)prepareForRecycle
+{
+  [super prepareForRecycle];
+  [self setPropsToDefault];
+}
+
++ (ComponentDescriptorProvider)componentDescriptorProvider
+{
+  return concreteComponentDescriptorProvider<SwitchComponentDescriptor>();
+}
+
+- (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
+{
+  const auto &oldSwitchProps = *std::static_pointer_cast<const SwitchProps>(_props);
+  const auto &newSwitchProps = *std::static_pointer_cast<const SwitchProps>(props);
 
   // `value`
   if (oldSwitchProps.value != newSwitchProps.value) {
     _switchView.on = newSwitchProps.value;
-    _wasOn = newSwitchProps.value;
   }
 
   // `disabled`
@@ -73,16 +87,36 @@ using namespace facebook::react;
   if (oldSwitchProps.thumbTintColor != newSwitchProps.thumbTintColor) {
     _switchView.thumbTintColor = [UIColor colorWithCGColor:newSwitchProps.thumbTintColor.get()];
   }
+
+  [super updateProps:props oldProps:oldProps];
 }
 
 - (void)onChange:(UISwitch *)sender
 {
-  if (_wasOn == sender.on) {
+  const auto &props = *std::static_pointer_cast<const SwitchProps>(_props);
+  if (props.value == sender.on) {
     return;
   }
-  _wasOn = sender.on;
 
-  std::dynamic_pointer_cast<const SwitchEventEmitter>(_eventEmitter)->onChange(sender.on);
+  std::dynamic_pointer_cast<const SwitchEventEmitter>(_eventEmitter)
+      ->onChange(SwitchEventEmitter::OnChange{.value = static_cast<bool>(sender.on)});
+}
+
+#pragma mark - Native Commands
+
+- (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
+{
+  RCTSwitchHandleCommand(self, commandName, args);
+}
+
+- (void)setValue:(BOOL)value
+{
+  [_switchView setOn:value animated:YES];
 }
 
 @end
+
+Class<RCTComponentViewProtocol> RCTSwitchCls(void)
+{
+  return RCTSwitchComponentView.class;
+}

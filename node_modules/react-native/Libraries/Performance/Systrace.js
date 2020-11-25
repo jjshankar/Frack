@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -10,7 +10,7 @@
 
 'use strict';
 
-const invariant = require('fbjs/lib/invariant');
+const invariant = require('invariant');
 
 const TRACE_TAG_REACT_APPS = 1 << 17; // eslint-disable-line no-bitwise
 const TRACE_TAG_JS_VM_CALLS = 1 << 27; // eslint-disable-line no-bitwise
@@ -87,11 +87,25 @@ const userTimingPolyfill = __DEV__
     }
   : null;
 
+function installPerformanceHooks(polyfill) {
+  if (polyfill) {
+    if (global.performance === undefined) {
+      global.performance = {};
+    }
+
+    Object.keys(polyfill).forEach(methodName => {
+      if (typeof global.performance[methodName] !== 'function') {
+        global.performance[methodName] = polyfill[methodName];
+      }
+    });
+  }
+}
+
 const Systrace = {
   installReactHook() {
     if (_enabled) {
       if (__DEV__) {
-        global.performance = userTimingPolyfill;
+        installPerformanceHooks(userTimingPolyfill);
       }
     }
     _canInstallReactHook = true;
@@ -108,8 +122,8 @@ const Systrace = {
             global.nativeTraceEndLegacy(TRACE_TAG_JS_VM_CALLS);
         }
         if (_canInstallReactHook) {
-          if (enabled && global.performance === undefined) {
-            global.performance = userTimingPolyfill;
+          if (enabled) {
+            installPerformanceHooks(userTimingPolyfill);
           }
         }
       }

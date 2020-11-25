@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,9 +9,11 @@
 
 'use strict';
 
-var Assert = require('NativeModules').Assert;
+const {NativeModules} = require('react-native');
 
-var Asserts = {
+const {Assert} = NativeModules;
+
+const Asserts = {
   assertEquals: function(expected, actual, msg) {
     if (expected !== actual) {
       Assert.fail(
